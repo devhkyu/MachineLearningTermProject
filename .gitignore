@@ -198,4 +198,7 @@ dmypy.json
 # all ignore idea directory
 .idea/
 
+# all ignore csv files
+*.csv
+
 # End of https://www.gitignore.io/api/python,pycharm
