@@ -1,12 +1,15 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans, DBSCAN
 
-keyword_list = ["income","gdp","gni","deficit","budget","market","stock","bond","infrastruction","us$"]
+DATA_DIR = Path('../data/world_development_indicators')
+keyword_list = ["income", "gdp", "gni", "deficit", "budget",
+                "market", "stock", "bond", "infrastruction", "us$"]
 
-origin_dataset = pd.read_csv("Indicators.csv")
+origin_dataset = pd.read_csv(DATA_DIR/"Indicators.csv")
 origin_dataset["Country"] = origin_dataset["Year"].map(str) + origin_dataset["CountryName"]
 
 #reshape data
