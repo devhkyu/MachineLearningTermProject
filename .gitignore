@@ -198,5 +198,9 @@ dmypy.json
 # all ignore idea directory
 .idea/
 
-# ignore all csv files
+# Ignore all csv files
 *.csv
+
+# Ignore all xlsx files
+*.xls
+*.xlsx
