@@ -6,8 +6,17 @@ from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans, DBSCAN
 
 DATA_DIR = Path('../data/world_development_indicators')
-keyword_list = ["income", "gdp", "gni", "deficit", "budget",
-                "market", "stock", "bond", "infrastruction", "us$"]
+key_word_dict = {}
+key_word_dict['Demography'] = ['population','birth','death','fertility','mortality','expectancy']
+key_word_dict['Food'] = ['food','grain','nutrition','calories']
+key_word_dict['Trade'] = ['trade','import','export','good','shipping','shipment']
+key_word_dict['Health'] = ['health','desease','hospital','mortality','doctor']
+key_word_dict['Economy'] = ['income','gdp','gni','deficit','budget','market','stock','bond','infrastructure']
+key_word_dict['Energy'] = ['fuel','energy','power','emission','electric','electricity']
+key_word_dict['Education'] = ['education','literacy']
+key_word_dict['Employment'] =['employed','employment','umemployed','unemployment']
+key_word_dict['Rural'] = ['rural','village']
+key_word_dict['Urban'] = ['urban','city']
 
 origin_dataset = pd.read_csv(DATA_DIR/"Indicators.csv")
 origin_dataset["Country"] = origin_dataset["Year"].map(str) + origin_dataset["CountryName"]

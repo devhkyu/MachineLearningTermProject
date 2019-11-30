@@ -53,7 +53,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_
 
 # Parameter
 param_logistic = {'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'], 'max_iter': [50, 100, 200]}
-param_svm = {'C': [0.1, 1.0, 10.0], 'gamma': [1, 10, 100], 'kernel': ['linear', 'rbf', 'sigmoid']}
+param_svm = {'C': [0.1, 1.0, 10.0], 'gamma': [1, 10, 100], 'kernel': ['poly','linear', 'rbf', 'sigmoid']}
 CV = 5
 
 """
@@ -70,7 +70,7 @@ print('Time:', time.time()-start, "sec")
 # Support Vector Machine
 start = time.time()
 clf_svm = SVC(probability=True)
-grid_svm = GridSearchCV(estimator=clf_svm, param_grid=param_svm, scoring='accuracy', n_jobs=10, cv=CV,verbose=10)
+grid_svm = GridSearchCV(estimator=clf_svm, param_grid=param_svm, scoring='accuracy', n_jobs=1, cv=CV,verbose=10)
 grid_svm.fit(x, y)
 print('Parameter:', grid_svm.best_params_)
 print('Score:', grid_svm.best_score_)
