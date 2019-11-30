@@ -30,22 +30,31 @@ print(pivot_data.columns)
 over_7000_indicator = pivot_data.count()[pivot_data.count()>7000].keys()
 print(over_7000_indicator)
 
+contain_keyword_col = dict()
+for i in key_word_dict.keys():
+    contain_keyword_col[i] = list()
+
 # Find include keyword column upper data
-contain_keyword_col = list()
-for i in over_7000_indicator:
-    if any(ext in i for ext in keyword_list):
-        contain_keyword_col.append(i)
-print(len(contain_keyword_col))
+for kw in key_word_dict.keys():
+    for i in over_7000_indicator:
+        if any(ext in i for ext in key_word_dict[kw]):
+            contain_keyword_col[kw].append(i)
+print(contain_keyword_col)
 
 # Drop feature of above columns
-not_keyword_col = [x if x not in contain_keyword_col else "" for x in pivot_data.columns]
-not_keyword_col = list(filter(lambda a: a != "", not_keyword_col))
-print(not_keyword_col)
-pivot_data = pivot_data.drop(columns = not_keyword_col)
-pivot_data = pivot_data.dropna()
+pivot_data_each_keyword = dict()
+for kw in key_word_dict.keys():
+    not_keyword_col = [x if x not in contain_keyword_col[kw] else "" for x in pivot_data.columns]
+    not_keyword_col = list(filter(lambda a: a != "", not_keyword_col))
+    print(not_keyword_col)
+    pivot_data_each_keyword[kw] = pivot_data.drop(columns = not_keyword_col)
+    pivot_data_each_keyword[kw] = pivot_data_each_keyword[kw].dropna()
 
+for kw in key_word_dict.keys():
+    print(kw)
+    print(pivot_data_each_keyword[kw].count())
 # More delete columns
-
+'''
 # Preprocessing
 # Use more scaler
 tmp = MinMaxScaler().fit_transform(pivot_data)
@@ -66,3 +75,4 @@ print(gm_result)
 ds = DBSCAN()
 ds_result = ds.fit_predict(pivot_data)
 print(ds_result)
+'''
