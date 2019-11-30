@@ -1,10 +1,8 @@
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
-from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Set data path
 DATA_DIR = Path('../data/bankmarketing')
@@ -22,15 +20,3 @@ knn = KNeighborsClassifier(n_neighbors=2)
 knn.fit(x_train, y_train)
 score = knn.score(x_test, y_test)
 print(score)
-
-plt.scatter(label_encoder.fit_transform(bank['month']), bank['duration'])
-plt.title('month-duration')
-plt.xlabel('month')
-plt.ylabel('duration')
-plt.show()
-
-plt.scatter(label_encoder.fit_transform(bank['contact']), bank['duration'])
-plt.title('contact-duration')
-plt.xlabel('contact')
-plt.ylabel('duration')
-plt.show()

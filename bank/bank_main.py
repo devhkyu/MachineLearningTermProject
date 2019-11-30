@@ -1,9 +1,8 @@
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.svm import SVC
 import pandas as pd
 import time
 import warnings
@@ -35,6 +34,7 @@ class MultiColumnLabelEncoder:
     def fit_transform(self,X,y=None):
         return self.fit(X,y).transform(X)
 
+
 # Read csv to df
 DATA_DIR = Path('../data/bankmarketing')
 bank_origin = pd.read_csv(DATA_DIR/'bank-additional-full.csv', delimiter=';')
@@ -54,9 +54,8 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_
 # Parameter
 param_logistic = {'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'], 'max_iter': [50, 100, 200]}
 param_svm = {'C': [0.1, 1.0, 10.0], 'gamma': [1, 10, 100], 'kernel': ['linear', 'rbf', 'sigmoid']}
-CV = 5
+CV = 10
 
-"""
 # Logistic Regression
 start = time.time()
 clf_log = LogisticRegression()
@@ -65,14 +64,3 @@ grid_log.fit(x, y)
 print('Parameter:', grid_log.best_params_)
 print('Score:', grid_log.best_score_)
 print('Time:', time.time()-start, "sec")
-"""
-
-# Support Vector Machine
-start = time.time()
-clf_svm = SVC(probability=True)
-grid_svm = GridSearchCV(estimator=clf_svm, param_grid=param_svm, scoring='accuracy', n_jobs=10, cv=CV,verbose=10)
-grid_svm.fit(x, y)
-print('Parameter:', grid_svm.best_params_)
-print('Score:', grid_svm.best_score_)
-print('Time:', time.time()-start, "sec")
-
