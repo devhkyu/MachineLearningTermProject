@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.metrics import silhouette_score
@@ -109,7 +109,7 @@ for keyList in keyword_powerset:
 
     # Preprocessing
     # Use more scaler
-    tmp = MinMaxScaler().fit_transform(tmp_table)
+    tmp = StandardScaler().fit_transform(tmp_table)
     tmp_table = pd.DataFrame(tmp, columns=tmp_table.columns, index=tmp_table.index.values)
     print(tmp_table.shape)
 
