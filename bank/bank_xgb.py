@@ -1,8 +1,12 @@
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.svm import SVC
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.metrics import accuracy_score
 import pandas as pd
 import time
 import warnings
@@ -39,7 +43,8 @@ class MultiColumnLabelEncoder:
 DATA_DIR = Path('../data/bankmarketing')
 
 # bank_origin = pd.read_csv(DATA_DIR/'bank-additional-full.csv', delimiter=';')
-bank_origin = pd.read_csv(DATA_DIR/'bank_prep_robust.csv')
+# bank_origin = pd.read_csv(DATA_DIR/'bank_prep_robust.csv')
+bank_origin = pd.read_csv(DATA_DIR/'bank_robust.csv')   # 0.9099
 
 # Encoding Label for categorical data
 le = LabelEncoder()
@@ -54,14 +59,47 @@ y = bank['y']
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
 # Parameter
-param_nb = {"priors": [None], "var_smoothing": [1e-9, 1e-7, 1e-5, 1e-3, 1e-1]}
+# param_xgb = {"priors": [None], "var_smoothing": [1e-9, 1e-7, 1e-5, 1e-3, 1e-1]}
+param_xgb = {"eta": [0.20, 0.25, 0.30, 0.35, 0.40], "gamma": [0, 1, 2, 3, 4, 5], "max_depth": [3, 4, 5, 6, 7]}
 CV = 10
 
-# naive baysian
+# XGBoost Classifier
 start = time.time()
-clf_nb = GaussianNB(priors=None)
-grid_nb_clf = GridSearchCV(estimator=clf_nb, param_grid=param_nb, scoring='accuracy', n_jobs=4, cv=CV, verbose=10)
-grid_nb_clf.fit(x, y)
-print('Parameter:', grid_nb_clf.best_params_)
-print('Score:', grid_nb_clf.best_score_)
+clf_log = LogisticRegression(max_iter=50, solver='liblinear')
+clf_log.fit(x_train, y_train)
+log_y = clf_log.predict(x_test)
+print("Logistic Regression: %.4f" % (accuracy_score(y_test, log_y)))
+
+clf_nb = GaussianNB(priors=None, var_smoothing=0.1)
+clf_nb.fit(x_train, y_train)
+nb_y = clf_nb.predict(x_test)
+print("Naive Bayesian: %.4f" % (accuracy_score(y_test, nb_y)))
+
+clf_svm = SVC(C=0.1, gamma=1, kernel='sigmoid')
+clf_svm.fit(x_train, y_train)
+svm_y = clf_svm.predict(x_test)
+print("Support Vector Machine: %.4f" % (accuracy_score(y_test, svm_y)))
+
+y_pred = list()
+y_pred.append(log_y)
+y_pred.append(nb_y)
+y_pred.append(svm_y)
+
+clf_xgb = XGBClassifier(eta=0.5243, gamma=1.9861, max_depth=4)
+xgcv = 10
+print("XGBoost: %.4f" % sum((cross_val_score(clf_xgb, pd.DataFrame(y_pred).T, y_test, cv=xgcv))/xgcv))
+
+"""
+y_pred = []
+for inx in range(int(log_y.shape[0])):
+    y_pred.append([log_y[inx], nb_y[inx]])
+"""
+
+"""
+clf_xgb = XGBClassifier()
+grid_xgb_clf = GridSearchCV(estimator=clf_xgb, param_grid=param_xgb, scoring='accuracy', n_jobs=4, cv=CV, verbose=10)
+grid_xgb_clf.fit(x, y)
+print('Parameter:', grid_xgb_clf.best_params_)
+print('Score:', grid_xgb_clf.best_score_)
 print('Time:', time.time()-start, "sec")
+"""

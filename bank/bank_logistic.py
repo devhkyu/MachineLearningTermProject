@@ -48,21 +48,22 @@ le = LabelEncoder()
 bank = MultiColumnLabelEncoder(columns=['job', 'marital', 'education', 'default', 'housing', 'loan',
                                       'contact', 'month', 'day_of_week', 'poutcome']).fit_transform(bank_origin)
 # Select X, Y
-x = bank.drop(columns='y')
+# x = bank.drop(columns='y')
+x = bank[['duration', 'pdays', 'nr.employed', 'euribor3m', 'campaign', 'age']]
 y = bank['y']
 
 # Split train and test set
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
 # Parameter
-# param_logistic = {'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'], 'max_iter': [50, 100, 200]}
-param_logistic = {'solver': ['saga'], 'max_iter': [50]}
+param_logistic = {'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'], 'max_iter': [50, 100, 200]}
+# param_logistic = {'solver': ['saga'], 'max_iter': [50]}
 CV = 10
 
 # Logistic Regression
 start = time.time()
 clf_log = LogisticRegression()
-grid_log = GridSearchCV(estimator=clf_log, param_grid=param_logistic, scoring='accuracy', n_jobs=1, cv=CV)
+grid_log = GridSearchCV(estimator=clf_log, param_grid=param_logistic, scoring='accuracy', n_jobs=4, cv=CV, verbose=10)
 grid_log.fit(x, y)
 print('\nStandard Scaled Data\n')
 print('Parameter:', grid_log.best_params_)

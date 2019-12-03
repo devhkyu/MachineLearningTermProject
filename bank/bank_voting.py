@@ -1,10 +1,14 @@
+# Import Modules
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.ensemble import VotingClassifier
 from sklearn.exceptions import ConvergenceWarning
 import pandas as pd
-import time
 import warnings
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
@@ -37,31 +41,28 @@ class MultiColumnLabelEncoder:
 
 # Read csv to df
 DATA_DIR = Path('../data/bankmarketing')
-
-# bank_origin = pd.read_csv(DATA_DIR/'bank-additional-full.csv', delimiter=';')
 bank_origin = pd.read_csv(DATA_DIR/'bank_prep_robust.csv')
 
 # Encoding Label for categorical data
 le = LabelEncoder()
 bank = MultiColumnLabelEncoder(columns=['job', 'marital', 'education', 'default', 'housing', 'loan',
-                                      'contact', 'month', 'day_of_week', 'poutcome', 'y']).fit_transform(bank_origin)
+                                      'contact', 'month', 'day_of_week', 'poutcome']).fit_transform(bank_origin)
+
 # Select X, Y
-# x = bank.drop(columns='y')
 x = bank[['duration', 'pdays', 'nr.employed', 'euribor3m', 'campaign', 'age']]
 y = bank['y']
 
 # Split train and test set
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
-# Parameter
-param_knn = {'n_neighbors': [2, 4, 6, 8, 10], 'metric': ['euclidean', 'manhattan']}
-CV = 10
+# Classifier
+log_clf = LogisticRegression(max_iter=50, solver='saga')
+nb_clf = GaussianNB(priors=None, var_smoothing=0.1)
+svm_clf = SVC(C=0.1, gamma=1, kernel='linear')
+voting_clf = VotingClassifier(estimators=[('lr', log_clf), ('nb', nb_clf), ('svc', svm_clf)], voting='hard')
 
-# KNN
-start = time.time()
-knn_clf = KNeighborsClassifier()
-grid_knn_clf = GridSearchCV(estimator=knn_clf, param_grid=param_knn, scoring='accuracy', n_jobs=4, cv=CV, verbose=10)
-grid_knn_clf.fit(x, y)
-print('Parameter:', grid_knn_clf.best_params_)
-print('Score:', grid_knn_clf.best_score_)
-print('Time:', time.time()-start, "sec")
+# Voting Classification
+for clf in (log_clf, nb_clf, svm_clf, voting_clf):
+    clf.fit(x_train, y_train)
+    y_pred = clf.predict(x_test)
+    print(clf.__class__.__name__, accuracy_score(y_test, y_pred))
