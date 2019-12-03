@@ -112,8 +112,8 @@ for keyList in keyword_powerset:
     tmp_table = pd.DataFrame(tmp, columns=tmp_table.columns, index=tmp_table.index.values)
     print(tmp_table.shape)
 
-    hyper_tune[keyList] = dict()
-    purity_result[keyList] = dict()
+    hyper_tune["-".join(keyList)] = dict()
+    purity_result["-".join(keyList)] = dict()
 
     tmp_incomeLevel = incomeLevel_dataset[incomeLevel_dataset["Country"].isin(tmp_table.index.values)].reset_index()
     print(tmp_table.index.values)
@@ -126,12 +126,12 @@ for keyList in keyword_powerset:
     ds_result = ds_search.fit(tmp_table)
     print(ds_result.best_params_)
     print(ds_result.best_score_)
-    hyper_tune[keyList]["ds"] = ds_result.best_params_
+    hyper_tune["-".join(keyList)]["ds"] = ds_result.best_params_
 
     ds_best = DBSCAN(**(ds_result.best_params_))
     purity = cal_purity(ds_best,tmp_table,tmp_incomeLevel)
     print(purity)
-    purity_result[keyList]["ds"] = purity
+    purity_result["-".join(keyList)]["ds"] = purity
 
     # KMeans
     km = KMeans()
@@ -139,12 +139,12 @@ for keyList in keyword_powerset:
     km_result = km_search.fit(tmp_table)
     print(km_result.best_params_)
     print(km_result.best_score_)
-    hyper_tune[keyList]["km"] = km_result.best_params_
+    hyper_tune["-".join(keyList)]["km"] = km_result.best_params_
 
     km_best = KMeans(**(km_result.best_params_))
     purity = cal_purity(km_best,tmp_table,tmp_incomeLevel)
     print(purity)
-    purity_result[keyList]["km"] = purity
+    purity_result["-".join(keyList)]["km"] = purity
 
 
     # gausian navie basis
@@ -153,12 +153,12 @@ for keyList in keyword_powerset:
     gm_result = gm_search.fit(tmp_table)
     print(gm_result.best_params_)
     print(gm_result.best_score_)
-    hyper_tune[keyList]["gm"] = gm_result.best_params_
+    hyper_tune["-".join(keyList)]["gm"] = gm_result.best_params_
 
     gm_best = GaussianMixture(**(gm_result.best_params_))
     purity = cal_purity(gm_best,tmp_table,tmp_incomeLevel)
     print(purity)
-    purity_result[keyList]["gm"] = purity
+    purity_result["-".join(keyList)]["gm"] = purity
 
 
 print(hyper_tune)
