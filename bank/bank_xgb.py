@@ -43,8 +43,8 @@ class MultiColumnLabelEncoder:
 DATA_DIR = Path('../data/bankmarketing')
 
 # bank_origin = pd.read_csv(DATA_DIR/'bank-additional-full.csv', delimiter=';')
-# bank_origin = pd.read_csv(DATA_DIR/'bank_prep_robust.csv')
-bank_origin = pd.read_csv(DATA_DIR/'bank_robust.csv')   # 0.9099
+bank_origin = pd.read_csv(DATA_DIR/'bank_prep_robust.csv')
+# bank_origin = pd.read_csv(DATA_DIR/'bank_robust.csv')   # 0.9099
 
 # Encoding Label for categorical data
 le = LabelEncoder()
@@ -80,10 +80,16 @@ clf_svm.fit(x_train, y_train)
 svm_y = clf_svm.predict(x_test)
 print("Support Vector Machine: %.4f" % (accuracy_score(y_test, svm_y)))
 
+clf_xgbc = XGBClassifier(eta=0.10286751649448647, gamma=1.5458648766632133, max_depth=5)
+clf_xgbc.fit(x_train, y_train)
+xgbc_y = clf_xgbc.predict(x_test)
+print("XGBoost Classifier: %.4f" % (accuracy_score(y_test, xgbc_y)))
+
 y_pred = list()
 y_pred.append(log_y)
 y_pred.append(nb_y)
 y_pred.append(svm_y)
+y_pred.append(xgbc_y)
 
 clf_xgb = XGBClassifier(eta=0.5243, gamma=1.9861, max_depth=4)
 xgcv = 10
