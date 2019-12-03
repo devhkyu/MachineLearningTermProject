@@ -37,8 +37,8 @@ class MultiColumnLabelEncoder:
 
 # Read csv to df
 DATA_DIR = Path('../data/bankmarketing')
+
 bank_origin = pd.read_csv(DATA_DIR/'bank-additional-full.csv', delimiter=';')
-print(bank_origin.isnull().sum())
 
 # Encoding Label for categorical data
 le = LabelEncoder()

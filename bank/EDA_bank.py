@@ -23,7 +23,6 @@ print('Unknown count')
 unknown_list = ['job', 'marital', 'loan', 'housing', 'default']
 for inx in unknown_list:
     print("{}: {}".format(inx, bank[inx].value_counts()['unknown']))
-print("loan-housing: {}".format(990))
 print(bank[(bank['loan'] == 'unknown')][bank['housing'] == 'unknown'].head())
 print('===================================')
 
