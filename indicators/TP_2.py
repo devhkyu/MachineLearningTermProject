@@ -149,4 +149,9 @@ for keyList in keyword_powerset:
 print(hyper_tune)
 print(purity_result)
 
-open
+with open("result/hyper_tune.json", "w") as json_file:
+    json.dump(hyper_tune, json_file)
+
+
+with open("result/purity_result.json", "w") as json_file:
+    json.dump(purity_result, json_file)
