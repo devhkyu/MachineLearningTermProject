@@ -20,7 +20,7 @@ def silhouette_scoring(estimator, x):
     try:
         score = silhouette_score(x,cluster)
     except ValueError:
-        return 0
+        score = 0
     return score
 
 def cal_purity(model, x, gold):
@@ -119,6 +119,20 @@ for keyList in keyword_powerset:
     print(tmp_table.index.values)
     tmp_table = tmp_table.reindex(tmp_incomeLevel["Country"])
 
+    # DBSCAN
+    print(tmp_table.shape)
+    ds = DBSCAN()
+    ds_search = GridSearchCV(estimator=ds, param_grid=dc_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
+    ds_result = ds_search.fit(tmp_table)
+    print(ds_result.best_params_)
+    print(ds_result.best_score_)
+    hyper_tune[keyList]["ds"] = ds_result
+
+    ds_best = DBSCAN(**(ds_result.best_params_))
+    purity = cal_purity(ds_best,tmp_table,tmp_incomeLevel)
+    print(purity)
+    purity_result[keyList]["ds"] = purity
+
     # KMeans
     km = KMeans()
     km_search = GridSearchCV(estimator=km, param_grid=km_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
@@ -147,21 +161,6 @@ for keyList in keyword_powerset:
     purity_result[keyList]["gm"] = purity
 
 
-    # DBSCAN
-    print(tmp_table.shape)
-    ds = DBSCAN()
-    ds_search = GridSearchCV(estimator=ds, param_grid=dc_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
-    ds_result = ds_search.fit(tmp_table)
-    print(ds_result.best_params_)
-    print(ds_result.best_score_)
-    hyper_tune[keyList]["ds"] = ds_result
-
-    ds_best = DBSCAN(**(ds_result.best_params_))
-    purity = cal_purity(ds_best,tmp_table,tmp_incomeLevel)
-    print(purity)
-    purity_result[keyList]["ds"] = purity
-
-    
 print(hyper_tune)
 print(purity_result)
 
