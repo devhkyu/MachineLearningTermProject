@@ -139,6 +139,7 @@ for keyList in keyword_powerset:
     hyper_tune[keyList]["gm"] = gm_result
 
     # DBSCAN
+    print(tmp_table.shape)
     ds = DBSCAN()
     ds_search = GridSearchCV(estimator=ds, param_grid=dc_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
     ds_result = ds_search.fit(tmp_table)
