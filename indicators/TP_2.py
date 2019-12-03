@@ -94,6 +94,7 @@ for kw in key_word_dict.keys():
 keyword_powerset = powerset(key_word_dict.keys())
 
 hyper_tune = dict()
+sliho_reult = dict()
 purity_result = dict()
 for keyList in keyword_powerset:
     tmp_table = pd.DataFrame()
@@ -114,6 +115,7 @@ for keyList in keyword_powerset:
 
     hyper_tune["-".join(keyList)] = dict()
     purity_result["-".join(keyList)] = dict()
+    sliho_reult["-".join(keyList)] = dict()
 
     tmp_incomeLevel = incomeLevel_dataset[incomeLevel_dataset["Country"].isin(tmp_table.index.values)].reset_index()
     print(tmp_table.index.values)
@@ -127,6 +129,7 @@ for keyList in keyword_powerset:
     print(ds_result.best_params_)
     print(ds_result.best_score_)
     hyper_tune["-".join(keyList)]["ds"] = ds_result.best_params_
+    sliho_reult["-".join(keyList)]["ds"] = ds_result.best_score_
 
     ds_best = DBSCAN(**(ds_result.best_params_))
     purity = cal_purity(ds_best,tmp_table,tmp_incomeLevel)
@@ -140,6 +143,7 @@ for keyList in keyword_powerset:
     print(km_result.best_params_)
     print(km_result.best_score_)
     hyper_tune["-".join(keyList)]["km"] = km_result.best_params_
+    sliho_reult["-".join(keyList)]["km"] = km_result.best_score_
 
     km_best = KMeans(**(km_result.best_params_))
     purity = cal_purity(km_best,tmp_table,tmp_incomeLevel)
@@ -154,6 +158,7 @@ for keyList in keyword_powerset:
     print(gm_result.best_params_)
     print(gm_result.best_score_)
     hyper_tune["-".join(keyList)]["gm"] = gm_result.best_params_
+    sliho_reult["-".join(keyList)]["gm"] = gm_result.best_score_
 
     gm_best = GaussianMixture(**(gm_result.best_params_))
     purity = cal_purity(gm_best,tmp_table,tmp_incomeLevel)
@@ -163,10 +168,13 @@ for keyList in keyword_powerset:
 
 print(hyper_tune)
 print(purity_result)
+print(sliho_reult)
 
 with open("result/hyper_tune.json", "w") as json_file:
     json.dump(hyper_tune, json_file)
 
+with open("result/silhouette_result.json","w") as json_file:
+    json.dump(sliho_reult,json_file)
 
 with open("result/purity_result.json", "w") as json_file:
     json.dump(purity_result, json_file)
