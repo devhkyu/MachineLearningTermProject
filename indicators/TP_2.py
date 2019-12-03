@@ -24,10 +24,10 @@ def silhouette_scoring(estimator, x):
     return score
 
 def cal_purity(model, x, gold):
-    model.fit(x)
-    count_el = dict(sorted(Counter(model.labels_).items(), key=operator.itemgetter(0)))  # count each cluster's volume
+    cluster_result = model.fit_predict(x)
+    count_el = dict(sorted(Counter(cluster_result).items(), key=operator.itemgetter(0)))  # count each cluster's volume
     clustering_result = dict()  # collect each cluster's number of each elements
-    gold["cluster"] = model.labels_
+    gold["cluster"] = cluster_result
     popul = 0
 
     all_len = 0
