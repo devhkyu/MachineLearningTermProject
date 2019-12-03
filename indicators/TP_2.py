@@ -126,7 +126,7 @@ for keyList in keyword_powerset:
     ds_result = ds_search.fit(tmp_table)
     print(ds_result.best_params_)
     print(ds_result.best_score_)
-    hyper_tune[keyList]["ds"] = ds_result
+    hyper_tune[keyList]["ds"] = ds_result.best_params_
 
     ds_best = DBSCAN(**(ds_result.best_params_))
     purity = cal_purity(ds_best,tmp_table,tmp_incomeLevel)
@@ -139,7 +139,7 @@ for keyList in keyword_powerset:
     km_result = km_search.fit(tmp_table)
     print(km_result.best_params_)
     print(km_result.best_score_)
-    hyper_tune[keyList]["km"] = km_result
+    hyper_tune[keyList]["km"] = km_result.best_params_
 
     km_best = KMeans(**(km_result.best_params_))
     purity = cal_purity(km_best,tmp_table,tmp_incomeLevel)
@@ -153,7 +153,7 @@ for keyList in keyword_powerset:
     gm_result = gm_search.fit(tmp_table)
     print(gm_result.best_params_)
     print(gm_result.best_score_)
-    hyper_tune[keyList]["gm"] = gm_result
+    hyper_tune[keyList]["gm"] = gm_result.best_params_
 
     gm_best = GaussianMixture(**(gm_result.best_params_))
     purity = cal_purity(gm_best,tmp_table,tmp_incomeLevel)
