@@ -55,7 +55,7 @@ key_word_dict['Education'] = ['education','literacy']
 
 km_hpTune = {"n_clusters":[4,6,8,10,12],"max_iter":[50,100,200]}
 gm_hpTune = {"n_components":[4,6,8,10,12],"covariance_type":['full','tied','diag','spherical'], "max_iter":[50,100,200]}
-dc_hpTune ={"eps":[0.001,0.01,0.05,0.1,0.2,0.5],"min_samples":[2,5,10,15]}
+dc_hpTune ={"eps":[0.001,0.01,0.05,0.1,0.2,0.5],"min_samples":[20,50,100,200,500]}
 
 origin_dataset = pd.read_csv(DATA_DIR/"Indicators.csv")
 origin_dataset["Country"] = origin_dataset["Year"].map(str) + origin_dataset["CountryName"]
