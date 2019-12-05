@@ -204,3 +204,6 @@ dmypy.json
 # Ignore all xlsx files
 *.xls
 *.xlsx
+
+# Ignore all output files
+*.out

@@ -1,8 +1,8 @@
+# Import Modules
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import classification_report
 from sklearn.exceptions import ConvergenceWarning
 import pandas as pd
 import time
@@ -10,6 +10,7 @@ import warnings
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 
+# Multi Label Encoding
 class MultiColumnLabelEncoder:
     def __init__(self,columns = None):
         self.columns = columns # array of column names to encode

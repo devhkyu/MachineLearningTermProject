@@ -13,6 +13,7 @@ import warnings
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 
+# Multi Label Encoding
 class MultiColumnLabelEncoder:
     def __init__(self,columns = None):
         self.columns = columns # array of column names to encode

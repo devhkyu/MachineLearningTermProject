@@ -1,3 +1,4 @@
+# Import Modules
 from pathlib import Path
 import pandas as pd
 
@@ -25,12 +26,3 @@ for inx in unknown_list:
     print("{}: {}".format(inx, bank[inx].value_counts()['unknown']))
 print(bank[(bank['loan'] == 'unknown')][bank['housing'] == 'unknown'].head())
 print('===================================')
-
-"""
-age = bank['age']
-job = bank['job']
-plt.bar(job, age)
-plt.xlabel('job')
-plt.ylabel('age')
-plt.show()
-"""

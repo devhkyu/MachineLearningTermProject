@@ -1,9 +1,10 @@
+# Import Modules
 from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
-import numpy as np
 import pandas as pd
 
 
+# Multi Label Encoding
 class MultiColumnLabelEncoder:
     def __init__(self, columns=None):
         self.columns = columns# array of column names to encode

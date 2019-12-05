@@ -1,3 +1,4 @@
+# Import Modules
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
@@ -13,6 +14,7 @@ import warnings
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 
+# Multi Label Encoding
 class MultiColumnLabelEncoder:
     def __init__(self,columns = None):
         self.columns = columns # array of column names to encode
@@ -70,10 +72,12 @@ clf_log.fit(x_train, y_train)
 log_y = clf_log.predict(x_test)
 print("Logistic Regression: %.4f" % (accuracy_score(y_test, log_y)))
 
+"""
 clf_nb = GaussianNB(priors=None, var_smoothing=0.1)
 clf_nb.fit(x_train, y_train)
 nb_y = clf_nb.predict(x_test)
 print("Naive Bayesian: %.4f" % (accuracy_score(y_test, nb_y)))
+"""
 
 clf_svm = SVC(C=0.1, gamma=1, kernel='sigmoid')
 clf_svm.fit(x_train, y_train)
@@ -87,25 +91,10 @@ print("XGBoost Classifier: %.4f" % (accuracy_score(y_test, xgbc_y)))
 
 y_pred = list()
 y_pred.append(log_y)
-y_pred.append(nb_y)
+# y_pred.append(nb_y)
 y_pred.append(svm_y)
 y_pred.append(xgbc_y)
 
 clf_xgb = XGBClassifier(eta=0.5243, gamma=1.9861, max_depth=4)
 xgcv = 10
 print("XGBoost: %.4f" % sum((cross_val_score(clf_xgb, pd.DataFrame(y_pred).T, y_test, cv=xgcv))/xgcv))
-
-"""
-y_pred = []
-for inx in range(int(log_y.shape[0])):
-    y_pred.append([log_y[inx], nb_y[inx]])
-"""
-
-"""
-clf_xgb = XGBClassifier()
-grid_xgb_clf = GridSearchCV(estimator=clf_xgb, param_grid=param_xgb, scoring='accuracy', n_jobs=4, cv=CV, verbose=10)
-grid_xgb_clf.fit(x, y)
-print('Parameter:', grid_xgb_clf.best_params_)
-print('Score:', grid_xgb_clf.best_score_)
-print('Time:', time.time()-start, "sec")
-"""
