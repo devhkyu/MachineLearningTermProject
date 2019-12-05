@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler, LabelEncoder
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.metrics import silhouette_score
@@ -9,36 +9,61 @@ from sklearn.model_selection import GridSearchCV
 from collections import Counter
 import operator
 import json
-
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 def powerset(iterable):
     from itertools import chain, combinations
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
-def silhouette_scoring(estimator, x):
-    cluster = estimator.fit_predict(x)
-    try:
-        score = silhouette_score(x,cluster)
-    except ValueError:
-        score = 0
-    return score
+def visualizeClusters(X, labels):
+    estimator = PCA(n_components=2)
+    PCA_x = estimator.fit_transform(X)
+    x, y = PCA_x[:, 0], PCA_x[:, 1]
 
-def cal_purity(model, x, gold):
-    cluster_result = model.fit_predict(x)
-    count_el = dict(sorted(Counter(cluster_result).items(), key=operator.itemgetter(0)))  # count each cluster's volume
-    clustering_result = dict()  # collect each cluster's number of each elements
-    gold["cluster"] = cluster_result
-    popul = 0
+    PCA_df = pd.DataFrame({'x': x, 'y': y})
 
-    all_len = 0
-    # cal each cluster
-    for i in count_el.keys():
-        cluster_counter = Counter(gold.loc[gold["cluster"] == i, "Income-Level"])
-        clustering_result[i] = dict(cluster_counter)
-        popul += max(cluster_counter.values())
-        all_len += sum(cluster_counter.values())
+    scatterPlot(PCA_df, labels)
 
-    return float(popul)/all_len
+def scatterPlot(df, labels):
+    unique_labels = set(labels)
+    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+    colors.append([0, 0, 0, 1])
+
+    # make color vector
+    cvec = [colors[label] for label in labels]
+
+    
+    plt.scatter(df['x'], df['y'], c=cvec)
+    plt.show()
+    return
+
+def plotCluster(df,predict,model):
+    df_plot=df.copy()
+    country=list()
+    for i in range(len(df)):
+        country.append(df.index.array[i].split("_")[0])
+    df_plot['country']=country
+    if model!="origin":
+        df_plot['predict']=label
+        df_plot.groupby('country').agg(mode)
+        title="Clustering of Countries based on"+model
+        ti=np.unique(label)
+        d=dict(type='choropleth',locations=df_plot.index,locationmode="country names",
+               z=df_plot['predict'],text=df_plot.index,colorbar={"title":"cluster","tickmode":"array","tickvals":ti},
+               colorscale="Viridis" 
+              )
+    else:
+        df_plot=df_plot.groupby('country').mean()
+        d=dict(type='choropleth',locations=df_plot.index,locationmode="country names",
+           z=df_plot[target_id],text=df_plot.index,colorbar={"title":"f" ,"tickmode":"array","tickvals":[0,20,40,60,80,100,120,140,160,180,200]},
+           colorscale="Viridis"
+          )
+        title=target_id
+    layout = dict(title=title,height=500,
+                  geo=dict(showframe = False,
+                           projection = {'type':'mercator'}))
+    go.Figure(data=[d],layout=layout).show()
 
 DATA_DIR = Path('../data/world_development_indicators')
 key_word_dict = {}
@@ -52,10 +77,6 @@ key_word_dict['Education'] = ['education','literacy']
 #key_word_dict['Employment'] =['employed','employment','umemployed','unemployment']
 #key_word_dict['Rural'] = ['rural','village']
 #key_word_dict['Urban'] = ['urban','city']
-
-km_hpTune = {"n_clusters":[4,6,8,10,12],"max_iter":[50,100,200]}
-gm_hpTune = {"n_components":[4,6,8,10,12],"covariance_type":['full','tied','diag','spherical'], "max_iter":[50,100,200]}
-dc_hpTune ={"eps":[0.001,0.01,0.05,0.1,0.2,0.5],"min_samples":[150,300,500,700]}
 
 origin_dataset = pd.read_csv(DATA_DIR/"Indicators.csv")
 origin_dataset["Country"] = origin_dataset["Year"].map(str) + origin_dataset["CountryName"]
@@ -86,16 +107,23 @@ for kw in key_word_dict.keys():
     not_keyword_col = list(filter(lambda a: a != "", not_keyword_col))
     pivot_data_each_keyword[kw] = pivot_data.drop(columns = not_keyword_col)
     pivot_data_each_keyword[kw] = pivot_data_each_keyword[kw].dropna()
-    print(kw)
-    print(pivot_data_each_keyword[kw].columns)
-    print(len(pivot_data_each_keyword[kw].columns))
 # More delete columns
 
 keyword_powerset = powerset(key_word_dict.keys())
 
 hyper_tune = dict()
-sliho_reult = dict()
+sliho_result = dict()
 purity_result = dict()
+scaler = ["minmax","robust","standard"]
+
+for i in scaler:
+    with open("result/hyper_tune_" + i + ".json", "r") as f:
+        hyper_tune[i] = json.load(f)
+    with open("result/purity_result_"+i+".json") as f:
+        purity_result[i] = json.load(f)
+    with open("result/silhouette_result_"+i+".json") as f:
+        sliho_result[i] = json.load(f)
+
 for keyList in keyword_powerset:
     tmp_table = pd.DataFrame()
     if len(keyList) == 0:
@@ -105,76 +133,54 @@ for keyList in keyword_powerset:
             tmp_table = pivot_data_each_keyword[kw]
         else:
             tmp_table = pd.merge(tmp_table,pivot_data_each_keyword[kw],right_index=True,left_index=True)
-    print(keyList,"\nrow length = ",len(tmp_table),"\ncolumn count = ",len(tmp_table.columns))
-
+    
     # Preprocessing
     # Use more scaler
-    tmp = MinMaxScaler().fit_transform(tmp_table)
-    tmp_table = pd.DataFrame(tmp, columns=tmp_table.columns, index=tmp_table.index.values)
-    print(tmp_table.shape)
+    for i in scaler:
+        if i == "minmax":
+            scale = MinMaxScaler()
+        elif i == "robust":
+            scale = RobustScaler()
+        elif i == "standard":
+            scale = StandardScaler()
+        tmp = scale.fit_transform(tmp_table)
+        tmp_table_each_scale = pd.DataFrame(tmp, columns=tmp_table.columns, index=tmp_table.index.values)
 
-    hyper_tune["-".join(keyList)] = dict()
-    purity_result["-".join(keyList)] = dict()
-    sliho_reult["-".join(keyList)] = dict()
+        tmp_incomeLevel = incomeLevel_dataset[incomeLevel_dataset["Country"].isin(tmp_table_each_scale.index.values)].reset_index()
+        tmp_table_each_scale = tmp_table_each_scale.reindex(tmp_incomeLevel["Country"])
 
-    tmp_incomeLevel = incomeLevel_dataset[incomeLevel_dataset["Country"].isin(tmp_table.index.values)].reset_index()
-    print(tmp_table.index.values)
-    tmp_table = tmp_table.reindex(tmp_incomeLevel["Country"])
+        gold = tmp_incomeLevel["Income-Level"]
 
-    # DBSCAN
-    print(tmp_table.shape)
-    ds = DBSCAN()
-    ds_search = GridSearchCV(estimator=ds, param_grid=dc_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
-    ds_result = ds_search.fit(tmp_table)
-    print(ds_result.best_params_)
-    print(ds_result.best_score_)
-    hyper_tune["-".join(keyList)]["ds"] = ds_result.best_params_
-    sliho_reult["-".join(keyList)]["ds"] = ds_result.best_score_
+        #DBSCAN
+        ds = DBSCAN(**(hyper_tune[i]["-".join(keyList)]["ds"]))
+        ds_result = ds.fit_predict(tmp_table_each_scale)
+        ds_purity = purity_result[i]["-".join(keyList)]["ds"]
+        df_silhouette = sliho_result[i]["-".join(keyList)]["ds"]
 
-    ds_best = DBSCAN(**(ds_result.best_params_))
-    purity = cal_purity(ds_best,tmp_table,tmp_incomeLevel)
-    print(purity)
-    purity_result["-".join(keyList)]["ds"] = purity
+        #GMM
+        gm = GaussianMixture(**(hyper_tune[i]["-".join(keyList)]["gm"]))
+        gm_result = gm.fit_predict(tmp_table_each_scale)
+        gm_purity = purity_result[i]["-".join(keyList)]["gm"]
+        gm_silhouette = sliho_result[i]["-".join(keyList)]["gm"]
 
-    # KMeans
-    km = KMeans()
-    km_search = GridSearchCV(estimator=km, param_grid=km_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
-    km_result = km_search.fit(tmp_table)
-    print(km_result.best_params_)
-    print(km_result.best_score_)
-    hyper_tune["-".join(keyList)]["km"] = km_result.best_params_
-    sliho_reult["-".join(keyList)]["km"] = km_result.best_score_
-
-    km_best = KMeans(**(km_result.best_params_))
-    purity = cal_purity(km_best,tmp_table,tmp_incomeLevel)
-    print(purity)
-    purity_result["-".join(keyList)]["km"] = purity
-
-
-    # gausian navie basis
-    gm = GaussianMixture()
-    gm_search = GridSearchCV(estimator=gm, param_grid=gm_hpTune, scoring=silhouette_scoring, n_jobs=3, cv=5, verbose=10)
-    gm_result = gm_search.fit(tmp_table)
-    print(gm_result.best_params_)
-    print(gm_result.best_score_)
-    hyper_tune["-".join(keyList)]["gm"] = gm_result.best_params_
-    sliho_reult["-".join(keyList)]["gm"] = gm_result.best_score_
-
-    gm_best = GaussianMixture(**(gm_result.best_params_))
-    purity = cal_purity(gm_best,tmp_table,tmp_incomeLevel)
-    print(purity)
-    purity_result["-".join(keyList)]["gm"] = purity
-
-
-print(hyper_tune)
-print(purity_result)
-print(sliho_reult)
-
-with open("result/hyper_tune.json", "w") as json_file:
-    json.dump(hyper_tune, json_file)
-
-with open("result/silhouette_result.json","w") as json_file:
-    json.dump(sliho_reult,json_file)
-
-with open("result/purity_result.json", "w") as json_file:
-    json.dump(purity_result, json_file)
+        #KMeans
+        km = KMeans(**(hyper_tune[i]["-".join(keyList)]["km"]))
+        km_result = km.fit_predict(tmp_table_each_scale)
+        km_purity = purity_result[i]["-".join(keyList)]["km"]
+        km_silhouette = sliho_result[i]["-".join(keyList)]["km"]
+        plt.figure(figsize=(8, 8))
+        plt.title("-".join(keyList))
+        visualizeClusters(tmp_table_each_scale,LabelEncoder().fit_transform(gold))
+        '''
+        plt.figure(figsize=(8, 8))
+        plt.title("-".join(keyList)+"\nDBSCAN"+"\n"+i+"\n"+str(hyper_tune[i]["-".join(keyList)]["ds"])+"\n{silhouette:"+str(sliho_result[i]["-".join(keyList)]["ds"])+", purity:"+str(purity_result[i]["-".join(keyList)]["ds"])+"}")
+        visualizeClusters(tmp_table_each_scale,ds_result)
+        plt.figure(figsize=(8, 8))
+        plt.title("-".join(keyList)+"\nGMM"+"\n"+i+"\n"+str(hyper_tune[i]["-".join(keyList)]["gm"])+"\n{silhouette:"+str(sliho_result[i]["-".join(keyList)]["gm"])+", purity:"+str(purity_result[i]["-".join(keyList)]["gm"])+"}")
+        visualizeClusters(tmp_table_each_scale,gm_result)
+        print(gm_result)
+        plt.figure(figsize=(8, 8))
+        plt.title("-".join(keyList)+"\nKMeans"+"\n"+i+"\n"+str(hyper_tune[i]["-".join(keyList)]["km"])+"\n{silhouette:"+str(sliho_result[i]["-".join(keyList)]["km"])+", purity:"+str(purity_result[i]["-".join(keyList)]["km"])+"}")
+        visualizeClusters(tmp_table_each_scale,km_result)
+        print(km_result)
+        '''
