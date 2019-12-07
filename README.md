@@ -1,4 +1,16 @@
-Introduction of Directories and Files
+## DataSet
+### Bank Marketing
+https://www.kaggle.com/henriqueyamahata/bank-marketing
+### World Development Indicators
+https://www.kaggle.com/worldbank/world-development-indicators
+<br><br>
+## Classification
+![classifier](https://user-images.githubusercontent.com/44195740/70368446-e5351b00-18ed-11ea-816d-df63fc26c515.png)
+<br><br>
+## Clustering
+![cluster](https://user-images.githubusercontent.com/44195740/70368447-e6fede80-18ed-11ea-98cb-d725b8efe4f6.png)
+<br><br>
+## Introduction of Directories and Files
 -	MachineLearningTermProject(Directory)
     -	Bank(classification)(Directory)
         -	Bank_knn.py: K-Nearest Neighbor Classification
